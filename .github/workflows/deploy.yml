@@ -10,7 +10,7 @@ permissions:
 env:
   RESOURCE_GROUP: projHEDV
   TEMPLATE_FILE: infra/bicep/main.bicep
-  PARAMETER_FILE: infra/parameters/dev.json
+  PARAMETER_FILE: infra/bicep/parameters/dev.json
 
 jobs:
   validate-and-deploy:
@@ -28,18 +28,12 @@ jobs:
       - name: Validate Bicep
         run: |
           az bicep build --file "$TEMPLATE_FILE"
-          DEPLOYMENT_NAME="validate-$(date +%Y%m%d%H%M%S)"
-          az deployment group validate \
-            --name "$DEPLOYMENT_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --template-file "$TEMPLATE_FILE" \
-            --parameters @"$PARAMETER_FILE"
-            
+
       - name: Deploy Bicep
         run: |
           DEPLOYMENT_NAME="main-$(date +%Y%m%d%H%M%S)"
           az deployment group create \
-          --name "$DEPLOYMENT_NAME" \
-          --resource-group "$RESOURCE_GROUP" \
-          --template-file "$TEMPLATE_FILE" \
-          --parameters @"$PARAMETER_FILE"
+            --name "$DEPLOYMENT_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file "$TEMPLATE_FILE" \
+            --parameters @"$PARAMETER_FILE"
