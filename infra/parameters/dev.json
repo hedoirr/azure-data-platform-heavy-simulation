@@ -6,7 +6,7 @@
       "value": "dev"
     },
     "location": {
-      "value": "westeurope"
+      "value": "northeurope"
     },
     "storageAccountName": {
       "value": "stazuresalesdev01"
@@ -18,7 +18,7 @@
       "value": "dbw-sales-dev-01"
     },
     "sqlServerName": {
-      "value": "sql-sales-dev-01"
+      "value": "sqlsalesdev01edoir"
     },
     "sqlDatabaseName": {
       "value": "sqldb-sales-dev-01"
