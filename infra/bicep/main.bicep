@@ -1,5 +1,18 @@
+@description('Application prefix used for naming')
 param appPrefix string
+
+@description('Environment name (dev, qa, prod)')
+param environmentName string
+
+@description('Azure region')
 param location string = 'northeurope'
+
+@description('SQL admin username')
+param sqlAdminUser string
+
+@secure()
+@description('SQL admin password')
+param sqlAdminPassword string
 
 var storageAccountName = toLower('st${appPrefix}${environmentName}01')
 var sqlServerName = toLower('sql${appPrefix}${environmentName}01')
@@ -7,50 +20,12 @@ var dataFactoryName = 'adf-${appPrefix}-${environmentName}-01'
 var databricksName = 'dbw-${appPrefix}-${environmentName}-01'
 var sqlDatabaseName = 'sqldb-${appPrefix}-${environmentName}-01'
 
-@description('Environment name (dev, qa, prod)')
-param environment string
-
-@description('Azure region')
-param location string = resourceGroup().location
-
-@description('Storage account name')
-param storageAccountName string
-
-@description('Data Factory name')
-param dataFactoryName string
-
-@description('Databricks workspace name')
-param databricksName string
-
-@description('SQL server name')
-param sqlServerName string
-
-@description('SQL database name')
-param sqlDatabaseName string
-
-@description('SQL admin username')
-param sqlAdminUser string
-
-@secure()
-@description('SQL admin password (use Key Vault in real scenarios)')
-param sqlAdminPassword string
-resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
-  name: 'kv-${environment}'
-} // this would come from Key Vault
-
-var sqlPassword = sqlAdminPassword
-// =====================
-// TAGS (Padrão empresa)
-// =====================
 var tags = {
-  environment: environment
+  environment: environmentName
   project: 'azure-data-platform'
   owner: 'edoir'
 }
 
-// =====================
-// STORAGE ACCOUNT
-// =====================
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
   location: location
@@ -67,7 +42,6 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-// Containers
 resource bronzeContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
   name: '${storage.name}/default/bronze'
 }
@@ -80,9 +54,6 @@ resource goldContainer 'Microsoft.Storage/storageAccounts/blobServices/container
   name: '${storage.name}/default/gold'
 }
 
-// =====================
-// DATA FACTORY
-// =====================
 resource adf 'Microsoft.DataFactory/factories@2018-06-01' = {
   name: dataFactoryName
   location: location
@@ -92,9 +63,6 @@ resource adf 'Microsoft.DataFactory/factories@2018-06-01' = {
   }
 }
 
-// =====================
-// DATABRICKS
-// =====================
 resource databricks 'Microsoft.Databricks/workspaces@2023-02-01' = {
   name: databricksName
   location: location
@@ -107,9 +75,6 @@ resource databricks 'Microsoft.Databricks/workspaces@2023-02-01' = {
   }
 }
 
-// =====================
-// SQL SERVER
-// =====================
 resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   name: sqlServerName
   location: location
@@ -122,24 +87,18 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   }
 }
 
-// Firewall (permitir Azure services)
 resource sqlFirewall 'Microsoft.Sql/servers/firewallRules@2022-05-01-preview' = {
-  name: '${sqlServer.name}/AllowAzureServices'
+  parent: sqlServer
+  name: 'AllowAzureServices'
   properties: {
     startIpAddress: '0.0.0.0'
     endIpAddress: '0.0.0.0'
-  networkAcls: {
-  defaultAction: 'Deny'
-  bypass: 'AzureServices'
-    }
   }
 }
 
-// =====================
-// DATABASE
-// =====================
 resource sqlDb 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
-  name: '${sqlServer.name}/${sqlDatabaseName}'
+  parent: sqlServer
+  name: sqlDatabaseName
   location: location
   tags: tags
   sku: {
