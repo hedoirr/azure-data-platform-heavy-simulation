@@ -1,5 +1,4 @@
 param appPrefix string
-param environmentName string
 param location string = 'northeurope'
 
 var storageAccountName = toLower('st${appPrefix}${environmentName}01')
