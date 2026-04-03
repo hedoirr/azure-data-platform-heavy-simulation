@@ -9,7 +9,7 @@
       "value": "northeurope"
     },
     "storageAccountName": {
-      "value": "stazuresalesdev01"
+      "value": "stazuresalesdev01neu"
     },
     "dataFactoryName": {
       "value": "adf-sales-dev-01"
