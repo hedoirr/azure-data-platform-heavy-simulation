@@ -2,26 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "environment": {
+    "appPrefix": {
+      "value": "elior"
+    },
+    "environmentName": {
       "value": "dev"
     },
     "location": {
       "value": "northeurope"
-    },
-    "storageAccountName": {
-      "value": "stazuresalesdev01neu"
-    },
-    "dataFactoryName": {
-      "value": "adf-sales-dev-01"
-    },
-    "databricksName": {
-      "value": "dbw-sales-dev-01"
-    },
-    "sqlServerName": {
-      "value": "sqlsalesdev01edoir"
-    },
-    "sqlDatabaseName": {
-      "value": "sqldb-sales-dev-01"
     },
     "sqlAdminUser": {
       "value": "sqladminuser"
