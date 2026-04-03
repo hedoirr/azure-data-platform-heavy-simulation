@@ -1,3 +1,13 @@
+param appPrefix string
+param environmentName string
+param location string = 'northeurope'
+
+var storageAccountName = toLower('st${appPrefix}${environmentName}01')
+var sqlServerName = toLower('sql${appPrefix}${environmentName}01')
+var dataFactoryName = 'adf-${appPrefix}-${environmentName}-01'
+var databricksName = 'dbw-${appPrefix}-${environmentName}-01'
+var sqlDatabaseName = 'sqldb-${appPrefix}-${environmentName}-01'
+
 @description('Environment name (dev, qa, prod)')
 param environment string
 
