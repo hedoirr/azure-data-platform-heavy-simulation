@@ -1,0 +1,131 @@
+{
+    "name": "pl_country_sales_ingestion",
+    "properties": {
+      "description": "Ingest raw country sales data into ADLS Bronze using parameterized metadata-driven flow.",
+      "parameters": {
+        "countryCode": {
+          "type": "String",
+          "defaultValue": "FR"
+        },
+        "sourceFileName": {
+          "type": "String",
+          "defaultValue": "sales_fr.csv"
+        },
+        "bronzeContainer": {
+          "type": "String",
+          "defaultValue": "bronze"
+        },
+        "watermarkValue": {
+          "type": "String",
+          "defaultValue": "1900-01-01T00:00:00"
+        }
+      },
+      "activities": [
+        {
+          "name": "Get_Metadata_Source_File",
+          "type": "GetMetadata",
+          "dependsOn": [],
+          "typeProperties": {
+            "dataset": {
+              "referenceName": "ds_source_sales_file",
+              "type": "DatasetReference",
+              "parameters": {
+                "fileName": {
+                  "value": "@pipeline().parameters.sourceFileName",
+                  "type": "Expression"
+                }
+              }
+            },
+            "fieldList": [
+              "exists",
+              "lastModified"
+            ]
+          }
+        },
+        {
+          "name": "If_Source_Exists",
+          "type": "IfCondition",
+          "dependsOn": [
+            {
+              "activity": "Get_Metadata_Source_File",
+              "dependencyConditions": [
+                "Succeeded"
+              ]
+            }
+          ],
+          "typeProperties": {
+            "expression": {
+              "value": "@activity('Get_Metadata_Source_File').output.exists",
+              "type": "Expression"
+            },
+            "ifTrueActivities": [
+              {
+                "name": "Copy_Sales_To_Bronze",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 3,
+                  "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource"
+                  },
+                  "sink": {
+                    "type": "DelimitedTextSink",
+                    "storeSettings": {
+                      "type": "AzureBlobFSWriteSettings",
+                      "copyBehavior": "PreserveHierarchy"
+                    }
+                  },
+                  "enableStaging": false
+                },
+                "inputs": [
+                  {
+                    "referenceName": "ds_source_sales_file",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "fileName": {
+                        "value": "@pipeline().parameters.sourceFileName",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "ds_bronze_sales_file",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "container": {
+                        "value": "@pipeline().parameters.bronzeContainer",
+                        "type": "Expression"
+                      },
+                      "countryCode": {
+                        "value": "@pipeline().parameters.countryCode",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "ifFalseActivities": [
+              {
+                "name": "Fail_Source_Not_Found",
+                "type": "Fail",
+                "typeProperties": {
+                  "message": "Source file was not found.",
+                  "errorCode": "SRC_404"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "folder": {
+        "name": "country_ingestion"
+      }
+    }
+  }
